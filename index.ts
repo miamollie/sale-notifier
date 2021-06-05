@@ -23,8 +23,6 @@ export class SaleNotifierStack extends cdk.Stack {
 
     const topic = new sns.Topic(this, "Sale", {
       displayName: "New sale topic",
-      contentBasedDeduplication: true, //does this mean I don't have to store whether I've emailed?
-      fifo: true,
       topicName: "saleTopic",
     });
 
