@@ -1,0 +1,13 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const AWS = require("aws-sdk");
+// Set region
+AWS.config.region = process.env.AWS_REGION; //todo where should I really set this...
+// Create publish parameters
+exports.params = {
+    Message: "something to do with the sale URL?" /* required */,
+    TopicArn: "TOPIC_ARN",
+};
+// Create promise and SNS service object
+exports.publishMessage = new AWS.SNS().publish(exports.params).promise();
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoicHVibGlzaE1lc3NhZ2UuanMiLCJzb3VyY2VSb290IjoiIiwic291cmNlcyI6WyJwdWJsaXNoTWVzc2FnZS50cyJdLCJuYW1lcyI6W10sIm1hcHBpbmdzIjoiOztBQUFBLCtCQUFnQztBQUNoQyxhQUFhO0FBQ2IsR0FBRyxDQUFDLE1BQU0sQ0FBQyxNQUFNLEdBQUcsT0FBTyxDQUFDLEdBQUcsQ0FBQyxVQUFVLENBQUMsQ0FBQyx3Q0FBd0M7QUFFcEYsNEJBQTRCO0FBQ2YsUUFBQSxNQUFNLEdBQUc7SUFDcEIsT0FBTyxFQUFFLG9DQUFvQyxDQUFDLGNBQWM7SUFDNUQsUUFBUSxFQUFFLFdBQVc7Q0FDdEIsQ0FBQztBQUVGLHdDQUF3QztBQUMzQixRQUFBLGNBQWMsR0FBRyxJQUFJLEdBQUcsQ0FBQyxHQUFHLEVBQUUsQ0FBQyxPQUFPLENBQUMsY0FBTSxDQUFDLENBQUMsT0FBTyxFQUFFLENBQUMiLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgQVdTID0gcmVxdWlyZShcImF3cy1zZGtcIik7XG4vLyBTZXQgcmVnaW9uXG5BV1MuY29uZmlnLnJlZ2lvbiA9IHByb2Nlc3MuZW52LkFXU19SRUdJT047IC8vdG9kbyB3aGVyZSBzaG91bGQgSSByZWFsbHkgc2V0IHRoaXMuLi5cblxuLy8gQ3JlYXRlIHB1Ymxpc2ggcGFyYW1ldGVyc1xuZXhwb3J0IGNvbnN0IHBhcmFtcyA9IHtcbiAgTWVzc2FnZTogXCJzb21ldGhpbmcgdG8gZG8gd2l0aCB0aGUgc2FsZSBVUkw/XCIgLyogcmVxdWlyZWQgKi8sXG4gIFRvcGljQXJuOiBcIlRPUElDX0FSTlwiLFxufTtcblxuLy8gQ3JlYXRlIHByb21pc2UgYW5kIFNOUyBzZXJ2aWNlIG9iamVjdFxuZXhwb3J0IGNvbnN0IHB1Ymxpc2hNZXNzYWdlID0gbmV3IEFXUy5TTlMoKS5wdWJsaXNoKHBhcmFtcykucHJvbWlzZSgpO1xuIl19

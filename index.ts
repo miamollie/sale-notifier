@@ -2,24 +2,39 @@ import events = require("@aws-cdk/aws-events");
 import targets = require("@aws-cdk/aws-events-targets");
 import lambda = require("@aws-cdk/aws-lambda");
 import cdk = require("@aws-cdk/core");
+import * as sns from "@aws-cdk/aws-sns";
+import * as subs from "@aws-cdk/aws-sns-subscriptions";
 
 export class SaleNotifierStack extends cdk.Stack {
   constructor(app: cdk.App, id: string) {
     super(app, id);
 
-    const lambdaFn = new lambda.Function(this, "SaleNotifierHandler", {
+    const saleDetectionFn = new lambda.Function(this, "SaleDetectionHandler", {
+      code: lambda.Code.fromAsset("lambda"),
+      handler: "sale-detector.handler",
+      runtime: lambda.Runtime.NODEJS_10_X,
+    });
+
+    const saleNotifierFn = new lambda.Function(this, "SaleNotifierHandler", {
       code: lambda.Code.fromAsset("lambda"),
       handler: "sale-notifier.handler",
       runtime: lambda.Runtime.NODEJS_10_X,
     });
 
-    // Run every day at 6PM UTC
-    // See https://docs.aws.amazon.com/lambda/latest/dg/tutorial-scheduled-events-schedule-expressions.html
-    const rule = new events.Rule(this, "Rule", {
-      schedule: events.Schedule.expression("cron(0 18 ? * MON-FRI *)"), //todo change this
+    const topic = new sns.Topic(this, "Sale", {
+      displayName: "New sale topic",
+      contentBasedDeduplication: true, //does this mean I don't have to store whether I've emailed?
+      fifo: true,
+      topicName: "saleTopic",
     });
 
-    rule.addTarget(new targets.LambdaFunction(lambdaFn));
+    topic.addSubscription(new subs.LambdaSubscription(saleNotifierFn));
+
+    const rule = new events.Rule(this, "Rule", {
+      schedule: events.Schedule.rate(cdk.Duration.days(1)),
+    });
+
+    rule.addTarget(new targets.LambdaFunction(saleDetectionFn));
   }
 }
 
