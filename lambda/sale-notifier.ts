@@ -5,8 +5,10 @@ AWS.config.region = process.env.AWS_REGION;
 const ses = new AWS.SES();
 
 //Get Email Addresses
-const senderEmailAddress = process.env.SES_SENDER_IDENTITY; //TODO set this
-const receiverEmailAddress = process.env.SES_RECEIVER_IDENTITY; //TODO set this
+const senderEmailAddress = process.env.SES_SENDER_IDENTITY;
+const receiverEmailAddress = process.env.SES_RECEIVER_IDENTITY;
+
+//TODO saleUrl should come from the SNS published message somehow
 
 exports.handler = async function (event: { saleURL: string }) {
   var params = {
@@ -33,13 +35,12 @@ exports.handler = async function (event: { saleURL: string }) {
         Data: "New item on sale",
       },
     },
-    Source:
-      senderEmailAddress /* required: verified Amazon SES identity FROM email address */,
+    Source: senderEmailAddress, /* required: verified Amazon SES identity FROM email address */
     ReplyToAddresses: [
       senderEmailAddress /* verified Amazon SES identity FROM email address */,
     ],
   };
   // Send to SES
-  const result = await ses.sendEmail(params).promise();
+  const result = await ses.sendEmail(params as AWS.SES.SendEmailRequest).promise();
   console.log(result);
 };
