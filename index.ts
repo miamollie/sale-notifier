@@ -4,6 +4,8 @@ import lambda = require("@aws-cdk/aws-lambda");
 import cdk = require("@aws-cdk/core");
 import * as sns from "@aws-cdk/aws-sns";
 import * as subs from "@aws-cdk/aws-sns-subscriptions";
+import iam = require("@aws-cdk/aws-iam");
+import { Effect } from "@aws-cdk/aws-iam";
 
 export class SaleNotifierStack extends cdk.Stack {
   constructor(app: cdk.App, id: string) {
@@ -20,6 +22,13 @@ export class SaleNotifierStack extends cdk.Stack {
       handler: "sale-notifier.handler",
       runtime: lambda.Runtime.NODEJS_10_X,
     });
+
+    const iAmStatement = new iam.PolicyStatement({
+      effect: Effect.ALLOW,
+    });
+    iAmStatement.addActions("ses:SendEmail");
+    iAmStatement.addResources("*");
+    saleNotifierFn.addToRolePolicy(iAmStatement);
 
     const topic = new sns.Topic(this, "Sale", {
       displayName: "New sale topic",
