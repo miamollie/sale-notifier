@@ -28,4 +28,4 @@ typings/
 
 #  CDK resources
 cdk.out/
-index.js
+*.js
