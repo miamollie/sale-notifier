@@ -11,6 +11,8 @@ const receiverEmailAddress = process.env.SES_RECEIVER_IDENTITY;
 //TODO saleUrl should come from the SNS published message somehow
 
 exports.handler = async function (event: { saleURL: string }) {
+      console.log("Received event" + event);
+
   var params = {
     Destination: {
       ToAddresses: [receiverEmailAddress /* RECEIVER email address */],
