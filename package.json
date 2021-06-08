@@ -14,10 +14,14 @@
     "typescript": "~3.7.2"
   },
   "dependencies": {
-    "@aws-cdk/aws-ses": "*",
     "@aws-cdk/aws-events": "*",
     "@aws-cdk/aws-events-targets": "*",
+    "@aws-cdk/aws-iam": "1.106.1",
     "@aws-cdk/aws-lambda": "*",
-    "@aws-cdk/core": "*"
+    "@aws-cdk/aws-ses": "*",
+    "@aws-cdk/core": "*",
+    "aws-sdk": "^2.922.0",
+    "axios": "^0.21.1",
+    "cheerio": "^1.0.0-rc.9"
   }
 }

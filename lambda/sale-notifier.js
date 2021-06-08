@@ -1,0 +1,44 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const AWS = require("aws-sdk");
+// Set the region
+AWS.config.region = process.env.AWS_REGION;
+const ses = new AWS.SES();
+//Get Email Addresses
+const senderEmailAddress = process.env.SES_SENDER_IDENTITY;
+const receiverEmailAddress = process.env.SES_RECEIVER_IDENTITY;
+//TODO saleUrl should come from the SNS published message somehow
+exports.handler = async function (event) {
+    console.log("Received event" + event);
+    var params = {
+        Destination: {
+            ToAddresses: [receiverEmailAddress /* RECEIVER email address */],
+        },
+        Message: {
+            Body: {
+                Html: {
+                    Charset: "UTF-8",
+                    Data: "Found item on sale" +
+                        event.saleURL /* customize html version of email body */,
+                },
+                Text: {
+                    Charset: "UTF-8",
+                    Data: "Found item on sale" +
+                        event.saleURL /* customize text version of email body */,
+                },
+            },
+            Subject: {
+                Charset: "UTF-8",
+                Data: "New item on sale",
+            },
+        },
+        Source: senderEmailAddress,
+        ReplyToAddresses: [
+            senderEmailAddress /* verified Amazon SES identity FROM email address */,
+        ],
+    };
+    // Send to SES
+    const result = await ses.sendEmail(params).promise();
+    console.log(result);
+};
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoic2FsZS1ub3RpZmllci5qcyIsInNvdXJjZVJvb3QiOiIiLCJzb3VyY2VzIjpbInNhbGUtbm90aWZpZXIudHMiXSwibmFtZXMiOltdLCJtYXBwaW5ncyI6Ijs7QUFBQSwrQkFBZ0M7QUFDaEMsaUJBQWlCO0FBQ2pCLEdBQUcsQ0FBQyxNQUFNLENBQUMsTUFBTSxHQUFHLE9BQU8sQ0FBQyxHQUFHLENBQUMsVUFBVSxDQUFDO0FBRTNDLE1BQU0sR0FBRyxHQUFHLElBQUksR0FBRyxDQUFDLEdBQUcsRUFBRSxDQUFDO0FBRTFCLHFCQUFxQjtBQUNyQixNQUFNLGtCQUFrQixHQUFHLE9BQU8sQ0FBQyxHQUFHLENBQUMsbUJBQW1CLENBQUM7QUFDM0QsTUFBTSxvQkFBb0IsR0FBRyxPQUFPLENBQUMsR0FBRyxDQUFDLHFCQUFxQixDQUFDO0FBRS9ELGlFQUFpRTtBQUVqRSxPQUFPLENBQUMsT0FBTyxHQUFHLEtBQUssV0FBVyxLQUEwQjtJQUN0RCxPQUFPLENBQUMsR0FBRyxDQUFDLGdCQUFnQixHQUFHLEtBQUssQ0FBQyxDQUFDO0lBRTFDLElBQUksTUFBTSxHQUFHO1FBQ1gsV0FBVyxFQUFFO1lBQ1gsV0FBVyxFQUFFLENBQUMsb0JBQW9CLENBQUMsNEJBQTRCLENBQUM7U0FDakU7UUFDRCxPQUFPLEVBQUU7WUFDUCxJQUFJLEVBQUU7Z0JBQ0osSUFBSSxFQUFFO29CQUNKLE9BQU8sRUFBRSxPQUFPO29CQUNoQixJQUFJLEVBQ0Ysb0JBQW9CO3dCQUNwQixLQUFLLENBQUMsT0FBTyxDQUFDLDBDQUEwQztpQkFDM0Q7Z0JBQ0QsSUFBSSxFQUFFO29CQUNKLE9BQU8sRUFBRSxPQUFPO29CQUNoQixJQUFJLEVBQ0Ysb0JBQW9CO3dCQUNwQixLQUFLLENBQUMsT0FBTyxDQUFDLDBDQUEwQztpQkFDM0Q7YUFDRjtZQUNELE9BQU8sRUFBRTtnQkFDUCxPQUFPLEVBQUUsT0FBTztnQkFDaEIsSUFBSSxFQUFFLGtCQUFrQjthQUN6QjtTQUNGO1FBQ0QsTUFBTSxFQUFFLGtCQUFrQjtRQUMxQixnQkFBZ0IsRUFBRTtZQUNoQixrQkFBa0IsQ0FBQyxxREFBcUQ7U0FDekU7S0FDRixDQUFDO0lBQ0YsY0FBYztJQUNkLE1BQU0sTUFBTSxHQUFHLE1BQU0sR0FBRyxDQUFDLFNBQVMsQ0FBQyxNQUFrQyxDQUFDLENBQUMsT0FBTyxFQUFFLENBQUM7SUFDakYsT0FBTyxDQUFDLEdBQUcsQ0FBQyxNQUFNLENBQUMsQ0FBQztBQUN0QixDQUFDLENBQUMiLCJzb3VyY2VzQ29udGVudCI6WyJpbXBvcnQgQVdTID0gcmVxdWlyZShcImF3cy1zZGtcIik7XG4vLyBTZXQgdGhlIHJlZ2lvblxuQVdTLmNvbmZpZy5yZWdpb24gPSBwcm9jZXNzLmVudi5BV1NfUkVHSU9OO1xuXG5jb25zdCBzZXMgPSBuZXcgQVdTLlNFUygpO1xuXG4vL0dldCBFbWFpbCBBZGRyZXNzZXNcbmNvbnN0IHNlbmRlckVtYWlsQWRkcmVzcyA9IHByb2Nlc3MuZW52LlNFU19TRU5ERVJfSURFTlRJVFk7XG5jb25zdCByZWNlaXZlckVtYWlsQWRkcmVzcyA9IHByb2Nlc3MuZW52LlNFU19SRUNFSVZFUl9JREVOVElUWTtcblxuLy9UT0RPIHNhbGVVcmwgc2hvdWxkIGNvbWUgZnJvbSB0aGUgU05TIHB1Ymxpc2hlZCBtZXNzYWdlIHNvbWVob3dcblxuZXhwb3J0cy5oYW5kbGVyID0gYXN5bmMgZnVuY3Rpb24gKGV2ZW50OiB7IHNhbGVVUkw6IHN0cmluZyB9KSB7XG4gICAgICBjb25zb2xlLmxvZyhcIlJlY2VpdmVkIGV2ZW50XCIgKyBldmVudCk7XG5cbiAgdmFyIHBhcmFtcyA9IHtcbiAgICBEZXN0aW5hdGlvbjoge1xuICAgICAgVG9BZGRyZXNzZXM6IFtyZWNlaXZlckVtYWlsQWRkcmVzcyAvKiBSRUNFSVZFUiBlbWFpbCBhZGRyZXNzICovXSxcbiAgICB9LFxuICAgIE1lc3NhZ2U6IHtcbiAgICAgIEJvZHk6IHtcbiAgICAgICAgSHRtbDoge1xuICAgICAgICAgIENoYXJzZXQ6IFwiVVRGLThcIixcbiAgICAgICAgICBEYXRhOlxuICAgICAgICAgICAgXCJGb3VuZCBpdGVtIG9uIHNhbGVcIiArXG4gICAgICAgICAgICBldmVudC5zYWxlVVJMIC8qIGN1c3RvbWl6ZSBodG1sIHZlcnNpb24gb2YgZW1haWwgYm9keSAqLyxcbiAgICAgICAgfSxcbiAgICAgICAgVGV4dDoge1xuICAgICAgICAgIENoYXJzZXQ6IFwiVVRGLThcIixcbiAgICAgICAgICBEYXRhOlxuICAgICAgICAgICAgXCJGb3VuZCBpdGVtIG9uIHNhbGVcIiArXG4gICAgICAgICAgICBldmVudC5zYWxlVVJMIC8qIGN1c3RvbWl6ZSB0ZXh0IHZlcnNpb24gb2YgZW1haWwgYm9keSAqLyxcbiAgICAgICAgfSxcbiAgICAgIH0sXG4gICAgICBTdWJqZWN0OiB7XG4gICAgICAgIENoYXJzZXQ6IFwiVVRGLThcIixcbiAgICAgICAgRGF0YTogXCJOZXcgaXRlbSBvbiBzYWxlXCIsXG4gICAgICB9LFxuICAgIH0sXG4gICAgU291cmNlOiBzZW5kZXJFbWFpbEFkZHJlc3MsIC8qIHJlcXVpcmVkOiB2ZXJpZmllZCBBbWF6b24gU0VTIGlkZW50aXR5IEZST00gZW1haWwgYWRkcmVzcyAqL1xuICAgIFJlcGx5VG9BZGRyZXNzZXM6IFtcbiAgICAgIHNlbmRlckVtYWlsQWRkcmVzcyAvKiB2ZXJpZmllZCBBbWF6b24gU0VTIGlkZW50aXR5IEZST00gZW1haWwgYWRkcmVzcyAqLyxcbiAgICBdLFxuICB9O1xuICAvLyBTZW5kIHRvIFNFU1xuICBjb25zdCByZXN1bHQgPSBhd2FpdCBzZXMuc2VuZEVtYWlsKHBhcmFtcyBhcyBBV1MuU0VTLlNlbmRFbWFpbFJlcXVlc3QpLnByb21pc2UoKTtcbiAgY29uc29sZS5sb2cocmVzdWx0KTtcbn07XG4iXX0=
