@@ -10,7 +10,8 @@ const ses = new AWS.SES();
 const senderEmailAddress = process.env.SES_SENDER_IDENTITY;
 const receiverEmailAddress = process.env.SES_RECEIVER_IDENTITY;
 
-export async function main(event: SNSEvent) {
+exports.handler = async function (event: SNSEvent) {
+  console.warn("Notifying sale")
   console.log("Received event" + event);
 
   const records = event.Records.map((record: any) => {
@@ -60,6 +61,6 @@ export async function main(event: SNSEvent) {
 
   return {
     body: JSON.stringify({ records }),
-    statusCode: 2000,
+    statusCode: 200,
   };
 }

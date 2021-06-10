@@ -41,6 +41,7 @@ export class SaleNotifierStack extends cdk.Stack {
 
     //Subscribe the notification lambda to the pub/sub rule
     topic.addSubscription(new subs.LambdaSubscription(saleNotifierFn));
+    topic.grantPublish(saleDetectionFn);
 
     //Create scheduled event
     const rule = new events.Rule(this, "Rule", {
