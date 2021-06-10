@@ -1,4 +1,6 @@
 import AWS = require("aws-sdk");
+import { SNSEvent } from "aws-lambda";
+
 // Set the region
 AWS.config.region = process.env.AWS_REGION;
 
@@ -8,12 +10,21 @@ const ses = new AWS.SES();
 const senderEmailAddress = process.env.SES_SENDER_IDENTITY;
 const receiverEmailAddress = process.env.SES_RECEIVER_IDENTITY;
 
-//TODO saleUrl should come from the SNS published message somehow
+export async function main(event: SNSEvent) {
+  console.log("Received event" + event);
 
-exports.handler = async function (event: { saleURL: string }) {
-      console.log("Received event" + event);
+  const records = event.Records.map((record: any) => {
+    const { Message, Subject } = record.Sns;
 
-  var params = {
+    return { subject: Subject, message: Message };
+  });
+
+  console.log("records: 👉", JSON.stringify(records, null, 2));
+
+  const subject = event.Records[0].Sns.Subject;
+  const saleUrl = event.Records[0].Sns.Message;
+
+  const params = {
     Destination: {
       ToAddresses: [receiverEmailAddress /* RECEIVER email address */],
     },
@@ -22,14 +33,12 @@ exports.handler = async function (event: { saleURL: string }) {
         Html: {
           Charset: "UTF-8",
           Data:
-            "Found item on sale" +
-            event.saleURL /* customize html version of email body */,
+            subject + ": " + saleUrl /* customize html version of email body */,
         },
         Text: {
           Charset: "UTF-8",
           Data:
-            "Found item on sale" +
-            event.saleURL /* customize text version of email body */,
+            subject + ": " + saleUrl /* customize text version of email body */,
         },
       },
       Subject: {
@@ -37,12 +46,20 @@ exports.handler = async function (event: { saleURL: string }) {
         Data: "New item on sale",
       },
     },
-    Source: senderEmailAddress, /* required: verified Amazon SES identity FROM email address */
+    Source:
+      senderEmailAddress /* required: verified Amazon SES identity FROM email address */,
     ReplyToAddresses: [
       senderEmailAddress /* verified Amazon SES identity FROM email address */,
     ],
   };
   // Send to SES
-  const result = await ses.sendEmail(params as AWS.SES.SendEmailRequest).promise();
+  const result = await ses
+    .sendEmail(params as AWS.SES.SendEmailRequest)
+    .promise();
   console.log(result);
-};
+
+  return {
+    body: JSON.stringify({ records }),
+    statusCode: 2000,
+  };
+}

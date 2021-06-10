@@ -7,6 +7,7 @@ AWS.config.region = process.env.AWS_REGION;
 const params = {
   Message: "something to do with the sale URL?" /* required */,
   TopicArn: "arn:aws:sns:us-east-1:424795685451:saleTopic",
+  Subject: "New sale detected",
 };
 
 // Create promise and SNS service object
