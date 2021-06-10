@@ -10,6 +10,7 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
+    "@types/aws-lambda": "^8.10.77",
     "@types/node": "^10.17.0",
     "typescript": "~3.7.2"
   },
@@ -20,6 +21,7 @@
     "@aws-cdk/aws-lambda": "*",
     "@aws-cdk/aws-ses": "*",
     "@aws-cdk/core": "*",
+    "aws-lambda": "^1.0.6",
     "aws-sdk": "^2.922.0",
     "axios": "^0.21.1",
     "cheerio": "^1.0.0-rc.9"
