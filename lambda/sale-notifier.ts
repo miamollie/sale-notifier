@@ -57,10 +57,10 @@ exports.handler = async function (event: SNSEvent) {
   const result = await ses
     .sendEmail(params as AWS.SES.SendEmailRequest)
     .promise();
+    
   console.log(result);
 
   return {
-    body: JSON.stringify({ records }),
     statusCode: 200,
   };
 }
