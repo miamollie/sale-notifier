@@ -28,11 +28,11 @@ exports.handler = async function () {
         console.log(
           `Message ${params.Message} sent to the topic ${params.TopicArn}`
         );
+        return { statusCode: 200 };
       })
       .catch(function (err: any) {
-        console.error(err, err.stack);
+        console.log(err, err.stack);
           return { statusCode: 500 };
-
       });
   }
 
@@ -44,12 +44,8 @@ async function detectSale(url: string) {
   const response = await axios(url).catch((e: Error) => console.log(`Error requesting sale url: ${e}`));
   console.log("Request to URL ended")
   
-  console.log("Cheerio Load html START")
   const $ = cheerio.load(response.data);
-  console.log("Cheerio Load html END")
 
-  console.log("Cheerio searching for node")
   const node = $(SALE_IDENTIFIER);
-  console.log("Cheerio searching found node")
   return node.length > 0;
 }

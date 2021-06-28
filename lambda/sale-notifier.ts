@@ -12,15 +12,6 @@ const receiverEmailAddress = process.env.SES_RECEIVER_IDENTITY;
 
 exports.handler = async function (event: SNSEvent) {
   console.warn("Notifying sale")
-  console.log("Received event" + event);
-
-  const records = event.Records.map((record: any) => {
-    const { Message, Subject } = record.Sns;
-
-    return { subject: Subject, message: Message };
-  });
-
-  console.log("records: 👉", JSON.stringify(records, null, 2));
 
   const subject = event.Records[0].Sns.Subject;
   const saleUrl = event.Records[0].Sns.Message;
@@ -54,12 +45,8 @@ exports.handler = async function (event: SNSEvent) {
     ],
   };
   // Send to SES
-  const result = await ses
-    .sendEmail(params as AWS.SES.SendEmailRequest)
-    .promise();
+  await ses.sendEmail(params as AWS.SES.SendEmailRequest).promise();
     
-  console.log(result);
-
   return {
     statusCode: 200,
   };
