@@ -1,12 +1,13 @@
-import AWS = require("aws-sdk");
+import { SNSClient, PublishCommand } from "@aws-sdk/client-sns";
+
+const snsClient = new SNSClient({ region: "us-east-1" });
+
 const axios = require("axios");
 const cheerio = require("cheerio");
-// Set region
-AWS.config.region = process.env.AWS_REGION;
 
 // Create publish parameters
 const params = {
-  TopicArn: "arn:aws:sns:us-east-1:424795685451:saleTopic",
+  TopicArn: process.env.SALE_TOPIC_ARN,
   Subject: "New sale detected",
   Message: "",
 };
@@ -18,34 +19,35 @@ const SALE_IDENTIFIER = ".cta-price-value .list-price";
 exports.handler = async function () {
   console.log("Checking for sale...");
   const foundSale = await detectSale(SALE_URL);
-  console.log(`Found sale: ${foundSale}`)
-  const publishMessage = new AWS.SNS().publish({...params, Message: SALE_URL}).promise();
+  console.log(`Found sale: ${foundSale}`);
 
   if (foundSale) {
-    console.log('Publishing event to topic')
-    publishMessage
-      .then(function () {
-        console.log(
-          `Message ${params.Message} sent to the topic ${params.TopicArn}`
-        );
-        return { statusCode: 200 };
-      })
-      .catch(function (err: any) {
-        console.log(err, err.stack);
-          return { statusCode: 500 };
-      });
+    await publishMessage(SALE_URL);
   }
 
   return { statusCode: 200 };
 };
 
 async function detectSale(url: string) {
-  console.log("Request to URL started")
-  const response = await axios(url).catch((e: Error) => console.log(`Error requesting sale url: ${e}`));
-  console.log("Request to URL ended")
-  
+  const response = await axios(url).catch((e: Error) =>
+    console.log(`Error requesting sale url: ${e}`)
+  );
+
   const $ = cheerio.load(response.data);
 
   const node = $(SALE_IDENTIFIER);
   return node.length > 0;
+}
+
+async function publishMessage(url: string) {
+  try {
+    const data = await snsClient.send(
+      new PublishCommand({ ...params, Message: url })
+    );
+    console.log("Success.", data);
+    return data;
+  } catch (err) {
+    console.log("Error", err.stack);
+    return;
+  }
 }

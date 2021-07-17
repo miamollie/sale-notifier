@@ -6,20 +6,25 @@
   "scripts": {
     "build": "tsc",
     "watch": "tsc -w",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "deploy": "aws-vault exec miamollie --no-session -- cdk deploy"
   },
   "license": "Apache-2.0",
   "devDependencies": {
+    "@aws-sdk/types": "^3.1.0",
     "@types/aws-lambda": "^8.10.77",
     "@types/node": "^10.17.0",
-    "typescript": "~3.7.2"
+    "typescript": "^4.3.5"
   },
   "dependencies": {
-    "@aws-cdk/aws-events": "*",
-    "@aws-cdk/aws-events-targets": "*",
-    "@aws-cdk/aws-iam": "1.106.1",
-    "@aws-cdk/aws-lambda": "*",
-    "@aws-cdk/aws-ses": "*",
-    "@aws-cdk/core": "*"
+    "@aws-cdk/aws-events": "^1.111.0",
+    "@aws-cdk/aws-events-targets": "^1.111.0",
+    "@aws-cdk/aws-iam": "^1.111.0",
+    "@aws-cdk/aws-lambda": "^1.111.0",
+    "@aws-cdk/aws-ses": "^1.111.0",
+    "@aws-cdk/aws-sns": "^1.111.0",
+    "@aws-cdk/core": "^1.111.0",
+    "@aws-sdk/client-ses": "^3.20.0",
+    "@aws-sdk/client-sns": "^3.20.0"
   }
 }

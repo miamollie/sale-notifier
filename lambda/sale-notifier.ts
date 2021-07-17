@@ -1,53 +1,63 @@
-import AWS = require("aws-sdk");
 import { SNSEvent } from "aws-lambda";
+import { SESClient, SendEmailCommand } from "@aws-sdk/client-ses";
 
-// Set the region
-AWS.config.region = process.env.AWS_REGION;
-
-const ses = new AWS.SES();
+const sesClient = new SESClient({ region: "us-east-1" });
 
 //Get Email Addresses
-const senderEmailAddress = process.env.SES_SENDER_IDENTITY;
-const receiverEmailAddress = process.env.SES_RECEIVER_IDENTITY;
-
+const SenderEmailAddress = process.env.SES_SENDER_IDENTITY;
+const ReceiverEmailAddress = process.env.SES_RECEIVER_IDENTITY;
+const CHARSET = "UTF-8";
 exports.handler = async function (event: SNSEvent) {
-  console.warn("Notifying sale")
+  console.warn("Notifying sale");
 
   const subject = event.Records[0].Sns.Subject;
   const saleUrl = event.Records[0].Sns.Message;
 
+  await sendEmail(subject, saleUrl);
+  return {
+    statusCode: 200,
+  };
+};
+
+async function sendEmail(subject: string, saleUrl: string) {
+  const recipient =
+    typeof ReceiverEmailAddress === "string" ? ReceiverEmailAddress : "error";
+  const sender =
+    typeof SenderEmailAddress === "string" ? SenderEmailAddress : "error";
   const params = {
     Destination: {
-      ToAddresses: [receiverEmailAddress /* RECEIVER email address */],
+      ToAddresses: [recipient],
     },
     Message: {
       Body: {
         Html: {
-          Charset: "UTF-8",
-          Data:
-            subject + ": " + saleUrl /* customize html version of email body */,
+          Charset: CHARSET,
+          /*  html version of email body */
+          Data: subject + ": " + saleUrl,
         },
         Text: {
-          Charset: "UTF-8",
-          Data:
-            subject + ": " + saleUrl /* customize text version of email body */,
+          Charset: CHARSET,
+          /*  text version of email body */
+          Data: subject + ": " + saleUrl,
         },
       },
       Subject: {
-        Charset: "UTF-8",
+        Charset: CHARSET,
         Data: "New item on sale",
       },
     },
-    Source:
-      senderEmailAddress /* required: verified Amazon SES identity FROM email address */,
-    ReplyToAddresses: [
-      senderEmailAddress /* verified Amazon SES identity FROM email address */,
-    ],
+    /* required: verified Amazon SES identity FROM email address */
+    Source: sender,
+    /* verified Amazon SES identity FROM email address */
+    ReplyToAddresses: [sender],
   };
-  // Send to SES
-  await ses.sendEmail(params as AWS.SES.SendEmailRequest).promise();
-    
-  return {
-    statusCode: 200,
-  };
+
+  try {
+    const data = await sesClient.send(new SendEmailCommand(params));
+    console.log("Success", data);
+    return data;
+  } catch (err) {
+    console.log("Error", err);
+    return;
+  }
 }
