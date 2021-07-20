@@ -1,6 +1,7 @@
 import events = require("@aws-cdk/aws-events");
 import targets = require("@aws-cdk/aws-events-targets");
 import lambda = require("@aws-cdk/aws-lambda");
+import * as dynamodb from "@aws-cdk/aws-dynamodb";
 import cdk = require("@aws-cdk/core");
 import * as sns from "@aws-cdk/aws-sns";
 import * as subs from "@aws-cdk/aws-sns-subscriptions";
@@ -11,12 +12,19 @@ export class SaleNotifierStack extends cdk.Stack {
   constructor(app: cdk.App, id: string) {
     super(app, id);
 
+    const table = new dynamodb.Table(this, "SaleItem", {
+      partitionKey: { name: "id", type: dynamodb.AttributeType.STRING },
+      billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
+    });
+
     //Create detection lambda
     const saleDetectionFn = new lambda.Function(this, "SaleDetectionHandler", {
       code: lambda.Code.fromAsset("lambda"),
       handler: "sale-detector.handler",
       runtime: lambda.Runtime.NODEJS_10_X,
     });
+
+    table.grant(saleDetectionFn, ["dynamodb:Query"]);
 
     //Create notification lambda
     const saleNotifierFn = new lambda.Function(this, "SaleNotifierHandler", {

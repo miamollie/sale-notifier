@@ -17,13 +17,15 @@
     "typescript": "^4.3.5"
   },
   "dependencies": {
-    "@aws-cdk/aws-events": "^1.111.0",
-    "@aws-cdk/aws-events-targets": "^1.111.0",
-    "@aws-cdk/aws-iam": "^1.111.0",
-    "@aws-cdk/aws-lambda": "^1.111.0",
-    "@aws-cdk/aws-ses": "^1.111.0",
-    "@aws-cdk/aws-sns": "^1.111.0",
-    "@aws-cdk/core": "^1.111.0",
+    "@aws-cdk/aws-dynamodb": "1.111.0",
+    "@aws-cdk/aws-events": "1.111.0",
+    "@aws-cdk/aws-events-targets": "1.111.0",
+    "@aws-cdk/aws-iam": "1.111.0",
+    "@aws-cdk/aws-lambda": "1.111.0",
+    "@aws-cdk/aws-ses": "1.111.0",
+    "@aws-cdk/aws-sns": "1.111.0",
+    "@aws-cdk/core": "1.111.0",
+    "@aws-sdk/client-dynamodb": "^3.22.0",
     "@aws-sdk/client-ses": "^3.20.0",
     "@aws-sdk/client-sns": "^3.20.0"
   }
