@@ -7,7 +7,6 @@ import * as sns from "@aws-cdk/aws-sns";
 import * as subs from "@aws-cdk/aws-sns-subscriptions";
 import iam = require("@aws-cdk/aws-iam");
 import { Effect } from "@aws-cdk/aws-iam";
-
 export class SaleNotifierStack extends cdk.Stack {
   constructor(app: cdk.App, id: string) {
     super(app, id);
@@ -17,6 +16,7 @@ export class SaleNotifierStack extends cdk.Stack {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
     });
 
+
     //Create detection lambda
     const saleDetectionFn = new lambda.Function(this, "SaleDetectionHandler", {
       code: lambda.Code.fromAsset("lambda"),
@@ -24,7 +24,22 @@ export class SaleNotifierStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_10_X,
     });
 
-    table.grant(saleDetectionFn, ["dynamodb:Query"]);
+    // grant detection function permission to scan table
+    saleDetectionFn.role!.attachInlinePolicy(
+      new iam.Policy(this, "SaleDetectionInlinePolicy", {
+        statements: [
+          new iam.PolicyStatement({
+            actions: ["dynamodb:Scan"],
+            resources: [
+              table.tableArn,
+              "arn:aws:dynamodb:us-east-1:424795685451:table/SaleItem",
+            ],
+          }),
+        ],
+      })
+    );
+
+    table.grantFullAccess(saleDetectionFn);
 
     //Create notification lambda
     const saleNotifierFn = new lambda.Function(this, "SaleNotifierHandler", {
@@ -34,12 +49,12 @@ export class SaleNotifierStack extends cdk.Stack {
     });
 
     //Grant notifier lambda permission to send email
-    const iAmStatement = new iam.PolicyStatement({
+    const iAmStatementNotifier = new iam.PolicyStatement({
       effect: Effect.ALLOW,
     });
-    iAmStatement.addActions("ses:SendEmail");
-    iAmStatement.addResources("*");
-    saleNotifierFn.addToRolePolicy(iAmStatement);
+    iAmStatementNotifier.addActions("ses:SendEmail");
+    iAmStatementNotifier.addResources("*");
+    saleNotifierFn.addToRolePolicy(iAmStatementNotifier);
 
     //Create pub/sub notification topic
     const topic = new sns.Topic(this, "Sale", {

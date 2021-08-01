@@ -1,9 +1,78 @@
 import { SNSClient, PublishCommand } from "@aws-sdk/client-sns";
+import { DynamoDBClient, ScanCommand } from "@aws-sdk/client-dynamodb";
+import axios from "axios";
+import cheerio from "cheerio";
 
+const dbClient = new DynamoDBClient({ region: "us-east-1" });
 const snsClient = new SNSClient({ region: "us-east-1" });
 
-const axios = require("axios");
-const cheerio = require("cheerio");
+exports.handler = async function () {
+  console.log("Checking for sale...");
+  const Items = await getItemData();
+  
+  Items.forEach(async function (element) {
+    const { url } = element as unknown as SaleItemType; //TODO fix types
+    const foundSale = await detectSale(element as unknown as SaleItemType);
+    console.log(`Found sale: ${foundSale}`);
+
+    if (foundSale) {
+      await publishMessage(url);
+    }
+  });
+
+  return { statusCode: 200 };
+};
+
+const scanParams = {
+  TableName: "SaleItem",
+};
+const command = new ScanCommand(scanParams);
+
+async function getItemData(): Promise<SaleItemType[]> {
+  try {
+    const data = await dbClient.send(command);
+    // process data.
+    console.log("found record: " + data);
+    console.log(data);
+    if (!data) {
+      console.log("No data found");
+      return [];
+    }
+    const { Items } = data;
+
+    if (!Items) {
+      console.log("No Items found");
+      return [];
+    }
+    return Items as unknown as SaleItemType[];
+  } catch (error) {
+    console.log("Caught error in getItemData")
+    console.log(error)
+    return [];
+  }
+}
+
+interface SaleItemType {
+  url: string;
+  sale_identifier: string;
+}
+
+async function detectSale(data: SaleItemType) {
+  try {
+    const response = await axios(data.url);
+    if (!response) {
+      console.log("No response from URL");
+      return { statusCode: 500 };
+    }
+    const $ = cheerio.load(response.data);
+
+    const node = $(data.sale_identifier);
+    return node.length > 0;
+  } catch (e) {
+    console.log(`Error requesting sale url: ${e}`);
+    return { statusCode: 500 };
+  }
+}
 
 // Create publish parameters
 const params = {
@@ -11,33 +80,6 @@ const params = {
   Subject: "New sale detected",
   Message: "",
 };
-
-const SALE_URL =
-  "https://www.lululemon.com.au/en-au/p/free-to-be-serene-bra-light-support%2C-c%2Fd-cup/prod8430423.html";
-const SALE_IDENTIFIER = ".cta-price-value .list-price";
-
-exports.handler = async function () {
-  console.log("Checking for sale...");
-  const foundSale = await detectSale(SALE_URL);
-  console.log(`Found sale: ${foundSale}`);
-
-  if (foundSale) {
-    await publishMessage(SALE_URL);
-  }
-
-  return { statusCode: 200 };
-};
-
-async function detectSale(url: string) {
-  const response = await axios(url).catch((e: Error) =>
-    console.log(`Error requesting sale url: ${e}`)
-  );
-
-  const $ = cheerio.load(response.data);
-
-  const node = $(SALE_IDENTIFIER);
-  return node.length > 0;
-}
 
 async function publishMessage(url: string) {
   try {
@@ -48,6 +90,6 @@ async function publishMessage(url: string) {
     return data;
   } catch (err) {
     console.log("Error", err.stack);
-    return;
+    return { statusCode: 500 };
   }
 }

@@ -7,6 +7,7 @@
     "build": "tsc",
     "watch": "tsc -w",
     "cdk": "cdk",
+    "clean": "rm -rf cdk.out",
     "deploy": "aws-vault exec miamollie --no-session -- cdk deploy"
   },
   "license": "Apache-2.0",
