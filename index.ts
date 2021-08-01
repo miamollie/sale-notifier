@@ -16,12 +16,14 @@ export class SaleNotifierStack extends cdk.Stack {
       billingMode: dynamodb.BillingMode.PAY_PER_REQUEST,
     });
 
-
     //Create detection lambda
     const saleDetectionFn = new lambda.Function(this, "SaleDetectionHandler", {
       code: lambda.Code.fromAsset("lambda"),
       handler: "sale-detector.handler",
       runtime: lambda.Runtime.NODEJS_10_X,
+      environment: {
+        TABLE_NAME: table.tableName,
+      },
     });
 
     table.grantFullAccess(saleDetectionFn);

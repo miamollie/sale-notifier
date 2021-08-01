@@ -9,8 +9,10 @@ const snsClient = new SNSClient({ region: "us-east-1" });
 exports.handler = async function () {
   console.log("Checking for sale...");
   const Items = await getItemData();
-  
+
   Items.forEach(async function (element) {
+    console.log(element);
+    console.log(element.url);
     const { url } = element as unknown as SaleItemType; //TODO fix types
     const foundSale = await detectSale(element as unknown as SaleItemType);
     console.log(`Found sale: ${foundSale}`);
@@ -23,17 +25,12 @@ exports.handler = async function () {
   return { statusCode: 200 };
 };
 
-const scanParams = {
-  TableName: "SaleItem",
-};
-const command = new ScanCommand(scanParams);
+const command = new ScanCommand({ TableName: process.env.TABLE_NAME! });
 
 async function getItemData(): Promise<SaleItemType[]> {
   try {
     const data = await dbClient.send(command);
-    // process data.
-    console.log("found record: " + data);
-    console.log(data);
+
     if (!data) {
       console.log("No data found");
       return [];
@@ -46,8 +43,8 @@ async function getItemData(): Promise<SaleItemType[]> {
     }
     return Items as unknown as SaleItemType[];
   } catch (error) {
-    console.log("Caught error in getItemData")
-    console.log(error)
+    console.log("Caught error in getItemData");
+    console.log(error);
     return [];
   }
 }
