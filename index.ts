@@ -24,21 +24,6 @@ export class SaleNotifierStack extends cdk.Stack {
       runtime: lambda.Runtime.NODEJS_10_X,
     });
 
-    // grant detection function permission to scan table
-    saleDetectionFn.role!.attachInlinePolicy(
-      new iam.Policy(this, "SaleDetectionInlinePolicy", {
-        statements: [
-          new iam.PolicyStatement({
-            actions: ["dynamodb:Scan"],
-            resources: [
-              table.tableArn,
-              "arn:aws:dynamodb:us-east-1:424795685451:table/SaleItem",
-            ],
-          }),
-        ],
-      })
-    );
-
     table.grantFullAccess(saleDetectionFn);
 
     //Create notification lambda
