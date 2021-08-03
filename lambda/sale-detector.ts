@@ -7,27 +7,20 @@ const dbClient = new DynamoDBClient({ region: "us-east-1" });
 const snsClient = new SNSClient({ region: "us-east-1" });
 
 exports.handler = async function () {
-  console.log("Checking for sale...");
-  const Items = await getItemData();
+  const Items = await lookupItems();
 
-  Items.forEach(async function (element) {
-    console.log(element);
-    console.log(element.url);
-    const { url } = element as unknown as SaleItemType; //TODO fix types
-    const foundSale = await detectSale(element as unknown as SaleItemType);
-    console.log(`Found sale: ${foundSale}`);
+  const foundSale = await detectSale(Items[0]);
+  console.log(`Found sale: ${foundSale}`);
 
-    if (foundSale) {
-      await publishMessage(url);
-    }
-  });
+  if (foundSale) {
+    await publishMessage(Items[0].url.S);
+  }
 
   return { statusCode: 200 };
 };
 
 const command = new ScanCommand({ TableName: process.env.TABLE_NAME! });
-
-async function getItemData(): Promise<SaleItemType[]> {
+async function lookupItems(): Promise<SaleItemType[]> {
   try {
     const data = await dbClient.send(command);
 
@@ -43,27 +36,41 @@ async function getItemData(): Promise<SaleItemType[]> {
     }
     return Items as unknown as SaleItemType[];
   } catch (error) {
-    console.log("Caught error in getItemData");
+    console.log("Caught error in lookupItems");
     console.log(error);
     return [];
   }
 }
 
 interface SaleItemType {
-  url: string;
-  sale_identifier: string;
+  url: { S: string };
+  sale_identifier: { S: string };
 }
 
-async function detectSale(data: SaleItemType) {
+async function requestUrl(url: string): Promise<any> {
   try {
-    const response = await axios(data.url);
-    if (!response) {
-      console.log("No response from URL");
-      return { statusCode: 500 };
-    }
-    const $ = cheerio.load(response.data);
+    console.log(`Requesting data at ${url}`);
+    return await axios(url);
+  } catch (e) {
+    console.log(`Error requesting sale url: ${e}`);
+    return;
+  }
+}
 
-    const node = $(data.sale_identifier);
+async function detectSale({ url, sale_identifier }: SaleItemType) {
+  try {
+    const response = await requestUrl(url.S);
+    console.log(`Request to URl resulted in ${response.status}`);
+    if (response.status !== 200) {
+      return false;
+    }
+
+    const $ = cheerio.load(response.data);
+    const node = $(sale_identifier.S);
+
+    console.log(
+      `Found number of nodes: ${node.length} using identifier ${sale_identifier.S}`
+    );
     return node.length > 0;
   } catch (e) {
     console.log(`Error requesting sale url: ${e}`);
